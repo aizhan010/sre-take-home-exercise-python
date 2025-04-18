@@ -8,21 +8,28 @@ def load_config(file_path):
     with open(file_path, 'r') as file:
         return yaml.safe_load(file)
 
+def get_domain(url):
+    parsed = urlparse(url)
+    return parsed.hostname
+
 # Function to perform health checks
-def check_health(endpoint):
+def check_endpoint(endpoint):
     url = endpoint['url']
-    method = endpoint.get('method')
+    method = endpoint.get('method', 'GET')
     headers = endpoint.get('headers')
     body = endpoint.get('body')
 
     try:
-        response = requests.request(method, url, headers=headers, json=body)
-        if 200 <= response.status_code < 300:
-            return "UP"
-        else:
-            return "DOWN"
+        start = time.time()
+        response = requests.request(method, url, headers=headers, data=body, timeout=0.5)
+        elapsed = (time.time() - start) * 1000
+
+        if 200 <= response.status_code < 300 and elapsed <= 500:
+            return True
     except requests.RequestException:
-        return "DOWN"
+        pass
+
+    return False
 
 # Main function to monitor endpoints
 def monitor_endpoints(file_path):
