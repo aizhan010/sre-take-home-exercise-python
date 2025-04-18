@@ -34,25 +34,26 @@ def check_endpoint(endpoint):
     return False
 
 # Main function to monitor endpoints
-def monitor_endpoints(file_path):
-    config = load_config(file_path)
-    domain_stats = defaultdict(lambda: {"up": 0, "total": 0})
+def monitor(config_path):
+    endpoints = load_config(config_path)
+    stats = defaultdict(lambda: {"up": 0, "total": 0})
 
     while True:
-        for endpoint in config:
-            domain = endpoint["url"].split("//")[-1].split("/")[0]
-            result = check_health(endpoint)
+        print(f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] Running checks...")
 
-            domain_stats[domain]["total"] += 1
-            if result == "UP":
-                domain_stats[domain]["up"] += 1
+        for ep in endpoints:
+            domain = get_domain(ep['url'])
+            is_up = check_endpoint(ep)
 
-        # Log cumulative availability percentages
-        for domain, stats in domain_stats.items():
-            availability = round(100 * stats["up"] / stats["total"])
-            print(f"{domain} has {availability}% availability percentage")
+            stats[domain]["total"] += 1
+            if is_up:
+                stats[domain]["up"] += 1
 
-        print("---")
+        for domain, data in stats.items():
+            availability = round((data["up"] / data["total"]) * 100)
+            print(f"  {domain} - {availability}% availability")
+
+        print("-" * 40)
         time.sleep(15)
 
 # Entry point of the program
