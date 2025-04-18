@@ -1,6 +1,8 @@
 import yaml
 import requests
 import time
+import sys
+from urllib.parse import urlparse
 from collections import defaultdict
 
 # Function to load configuration from the YAML file
